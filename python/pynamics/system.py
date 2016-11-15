@@ -164,7 +164,7 @@ class System(object):
 
         return func
 
-    def state_space_post_invert(system,f,ma,eq = None,eq_active = None,presolve_constants = False):
+    def state_space_post_invert(system,Ax_b,eq = None,eq_active = None,presolve_constants = False):
         '''invert A matrix each call'''
         
         q_state = system.get_q(0)+system.get_q(1)
@@ -172,10 +172,10 @@ class System(object):
         q_d = system.get_q(1)
         q_dd = system.get_q(2)
 
-        f = sympy.Matrix(f)
-        ma = sympy.Matrix(ma)
+#        f = sympy.Matrix(f)
+#        ma = sympy.Matrix(ma)
         
-        Ax_b = ma-f
+#        Ax_b = ma-f
         if presolve_constants:
             Ax_b = Ax_b.subs(system.constants)
         A = Ax_b.jacobian(q_dd)
@@ -364,8 +364,12 @@ class System(object):
         return AA,b,x    
         
     @classmethod
-    def solveconstraineddynamics(cls,eq_dyn,eq_con,q_dyn,q_con,method='LU'):
-        AA,b,x = cls.assembleconstrained(eq_dyn,eq_con,q_dyn,q_con,method=method)
+    def solveconstraineddynamics(cls,f,ma,eq_con,q_dyn,q_con,method='LU'):
+        f = sympy.Matrix(f)
+        ma = sympy.Matrix(ma)
+        Ax_b = ma-f
+
+        AA,b,x = cls.assembleconstrained(Ax_b,eq_con,q_dyn,q_con,method=method)
         AA_inv = AA.inv(method = method)
         xx = AA_inv*b
         x_dyn = xx[0:len(q_dyn),:]
